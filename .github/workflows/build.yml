@@ -1,0 +1,61 @@
+# Rebuilds and publishes the report page whenever the data, SQL or code changes.
+# Drop next week's CSVs into data/, push, and the page on GitHub Pages updates itself.
+name: Build report page
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/**"
+      - "sql/**"
+      - "templates/**"
+      - "tests/**"
+      - "*.py"
+      - "requirements.txt"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:        # "Run workflow" button on the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Test (known problems caught in week 1, no future data used)
+        run: python -m pytest -q
+
+      - name: Build the page for the latest Monday in data/
+        run: python build.py
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

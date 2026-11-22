@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Joy Quick Commerce Report</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1b1f24; --muted: #5f6b7a; --line: #e3e7ec;
+    --accent: #1f5fbf; --accent-soft: #e8f0fc;
+    --supply: #9a5b00; --supply-bg: #fff3df;
+    --kam: #6b3fb3; --kam-bg: #f1ebfb;
+    --mkt: #0f766e; --mkt-bg: #e3f5f2;
+    --new: #b42318; --new-bg: #fdecea;
+    --wa: #e7f8df;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  header { background: var(--card); border-bottom: 1px solid var(--line); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+         flex-wrap: wrap; padding: 14px 0; }
+  h1 { font-size: 18px; margin: 0; }
+  select { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  nav { display: flex; gap: 4px; }
+  nav button { font: inherit; border: 0; background: none; padding: 10px 12px; cursor: pointer;
+               color: var(--muted); border-bottom: 2px solid transparent; }
+  nav button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+  main.wrap { padding-top: 20px; padding-bottom: 48px; }
+  section { margin-bottom: 28px; }
+  h2 { font-size: 16px; margin: 0 0 10px; }
+  .muted { color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+  .tile .label { color: var(--muted); font-size: 14px; }
+  .tile .value { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .tile .sub { font-size: 13px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; font-weight: 600; color: var(--muted); background: #fafbfc; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .nowrap { white-space: nowrap; }
+  .problem { font-weight: 600; }
+  .action { margin-top: 2px; }
+  .detail { color: var(--muted); font-size: 13px; }
+  .chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+  .chip.Supply { color: var(--supply); background: var(--supply-bg); }
+  .chip.KAM { color: var(--kam); background: var(--kam-bg); }
+  .chip.Marketing { color: var(--mkt); background: var(--mkt-bg); }
+  .empty { padding: 14px 16px; color: var(--muted); }
+  .msgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .msg { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+         display: flex; flex-direction: column; gap: 8px; }
+  .msg-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .msg pre { margin: 0; white-space: pre-wrap; word-break: break-word; background: var(--wa);
+             border-radius: 8px; padding: 10px 12px; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .btn { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 6px; cursor: pointer;
+         border: 1px solid var(--accent); color: var(--accent); background: #fff; }
+  .btn:hover { background: var(--accent-soft); }
+  tr.link { cursor: pointer; }
+  tr.link:hover td { background: var(--accent-soft); }
+  .ok { color: #157f3b; font-weight: 600; }
+  .late { color: var(--new); font-weight: 600; }
+  .note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .wide { min-width: 680px; }
+  .meta { margin-top: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .show-sm { display: none; }
+  @media (max-width: 720px) {
+    .show-sm { display: flex; }
+    .tiles { grid-template-columns: 1fr; }
+    .msgs { grid-template-columns: 1fr; }
+    .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div><h1>Joy quick commerce: weekly report</h1>
+        <div class="muted" id="dates"></div></div>
+      <label class="muted" id="picklabel">Report for <select id="pick"></select></label>
+    </div>
+    <nav role="tablist">
+      <button role="tab" data-tab="week" aria-selected="true">This week</button>
+      <button role="tab" data-tab="data" aria-selected="false">Data checks</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+  <div id="week"></div>
+  <div id="data" hidden></div>
+</main>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+// ---------- helpers ----------
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const dt = iso => { const [y,m,d] = iso.slice(0,10).split("-").map(Number); return new Date(Date.UTC(y, m-1, d)); };
+const fmtD = (iso, opt = {}) => { const x = dt(iso);
+  return (opt.day ? DAYS[x.getUTCDay()] + " " : "") + x.getUTCDate() + " " + MONTHS[x.getUTCMonth()] + (opt.year ? " " + x.getUTCFullYear() : ""); };
+function inr(v) {   // Indian grouping: 1234567 -> ₹12,34,567
+  if (v == null) return "–";
+  const n = Math.round(v), s = String(Math.abs(n));
+  const t = s.length > 3 ? s.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + s.slice(-3) : s;
+  return (n < 0 ? "-" : "") + "₹" + t;
+}
+// Lakh format for big totals: 1942263 -> ₹19.4L
+const lakh = v => v >= 1e5 ? "₹" + (v / 1e5).toFixed(1) + "L" : inr(v);
+const pct = v => v == null ? "–" : Math.round(v) + "%";
+const TEAM = { Supply: "Supply", KAM: "Platform KAM", Marketing: "Marketing" };
+const chip = team => `<span class="chip ${team}">${TEAM[team]}</span>`;
+const product = a => a.product_name.replace(/^Joy /, "");
+const openCell = a => a.is_new ? "New this week" : `${a.weeks_open} weeks <span class="detail">since ${fmtD(a.open_since)}</span>`;
+const table = (head, rows, emptyText, cls = "") => rows.length
+  ? `<div class="card scroll"><table class="${cls}"><thead><tr>${head}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`
+  : `<div class="card empty">${emptyText}</div>`;
+
+// ---------- This week ----------
+function renderWeek(r) {
+  const A = r.alerts, by = t => A.filter(a => a.team === t);
+  const nNew = A.filter(a => a.is_new).length;
+  const tiles = `
+    <div class="tiles">
+      <div class="tile"><div class="value">${lakh(r.sales_last_week)}</div><div class="label">Sales last week</div></div>
+      <div class="tile"><div class="value">${inr(r.total_inr)}</div><div class="label">Sales at risk per week</div></div>
+      <div class="tile"><div class="value">${A.length}</div><div class="label">Problems to act on (${nNew} new)</div></div>
+    </div>`;
+
+  const priorities = `
+    <section><h2>Priorities</h2>
+    ${table(`<th class="num">#</th><th>Problem and what to do</th><th class="hide-sm">Team</th><th class="num hide-sm">At risk / week</th><th class="hide-sm">Open</th>`,
+      A.map(a => `<tr>
+        <td class="num">${a.priority}</td>
+        <td><div class="problem">${esc(a.problem)}</div>
+            <div class="action">${esc(a.action)}</div>
+            <div class="meta show-sm">${chip(a.team)} <b>${inr(a.inr_at_risk_week)}</b><span class="detail">a week · ${a.is_new ? "new this week" : a.weeks_open + " weeks open"}</span></div></td>
+        <td class="hide-sm">${chip(a.team)}</td>
+        <td class="num hide-sm">${inr(a.inr_at_risk_week)}</td>
+        <td class="hide-sm nowrap">${openCell(a)}</td></tr>`),
+      "Nothing needs action this week.")}
+    </section>`;
+
+  const supply = `
+    <section><h2>Supply team</h2>
+    ${table(`<th>Warehouse</th><th>Product</th><th class="num">Ordered</th><th class="num">Delivered</th>
+             <th class="num">Units short</th><th class="num">Fill rate</th><th class="num">Store availability</th><th>Open</th>`,
+      by("Supply").map(a => `<tr>
+        <td class="nowrap"><b>${esc(a.warehouse_id)}</b><div class="detail">${esc(a.platform)} ${esc(a.city)}</div></td>
+        <td>${esc(product(a))}</td>
+        <td class="num">${a.qty_ordered}</td><td class="num">${a.qty_delivered}</td>
+        <td class="num"><b>${a.short_units}</b></td><td class="num">${pct(a.fill_rate * 100)}</td>
+        <td class="num">${pct(a.availability_last_week)} <span class="detail">vs ${pct(a.norm_availability)}</span></td>
+        <td class="nowrap">${openCell(a)}</td></tr>`),
+      "No short deliveries this week.", "wide")}
+    </section>`;
+
+  const kam = `
+    <section><h2>Platform account managers</h2>
+    ${table(`<th>Platform</th><th>Warehouse</th><th>Product</th><th>Problem</th><th class="num">Usual order</th>
+             <th class="num">Store availability</th><th class="num">At risk / week</th><th>Open</th>`,
+      by("KAM").map(a => `<tr>
+        <td><b>${esc(a.platform)}</b></td>
+        <td class="nowrap">${esc(a.warehouse_id)}<div class="detail">${esc(a.city)}</div></td>
+        <td>${esc(product(a))}</td>
+        <td>${a.issue === "PO stopped" ? "No PO raised" : "Out of stock, our deliveries complete"}</td>
+        <td class="num">${a.usual_qty_ordered ? Math.round(a.usual_qty_ordered) + " units" : "–"}</td>
+        <td class="num">${pct(a.availability_last_week)} <span class="detail">vs ${pct(a.norm_availability)}</span></td>
+        <td class="num">${inr(a.inr_at_risk_week)}</td>
+        <td class="nowrap">${openCell(a)}</td></tr>`),
+      "No platform-side problems this week.", "wide")}
+    </section>`;
+
+  const mkt = `
+    <section><h2>Marketing</h2>
+    ${table(`<th>Product</th><th>Platform</th><th class="num">Search rank</th><th class="num">Sales vs usual</th>
+             <th class="num">Store availability</th><th class="num">Lost / week</th><th>Open</th>`,
+      by("Marketing").map(a => `<tr>
+        <td><b>${esc(product(a))}</b></td>
+        <td class="nowrap">${esc(a.platform)} ${esc(a.city)}</td>
+        <td class="num">#${Math.round(a.usual_rank)} → <b>#${Math.round(a.rank_last_week)}</b></td>
+        <td class="num">${Math.round((a.units_per_store_day / a.base_units_per_store_day - 1) * 100)}%</td>
+        <td class="num">${pct(a.availability_last_week)}</td>
+        <td class="num">${inr(a.inr_at_risk_week)}</td>
+        <td class="nowrap">${openCell(a)}</td></tr>`),
+      "No search-rank problems this week.", "wide")}
+    </section>`;
+
+  const msgs = `
+    <section><h2>WhatsApp messages</h2>
+    ${r.messages.length ? `<div class="msgs">${r.messages.map((m, i) => `
+      <div class="msg"><div class="msg-head"><b>To: ${esc(m.to)}</b>
+        <button class="btn" data-copy="${i}">Copy</button></div>
+        <pre>${esc(m.text)}</pre></div>`).join("")}</div>`
+      : `<div class="card empty">No messages to send this week.</div>`}
+    </section>`;
+
+  const el = document.getElementById("week");
+  el.innerHTML = tiles + priorities + supply + kam + mkt + msgs;
+  el.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => {
+    const text = r.messages[+b.dataset.copy].text;
+    try { await navigator.clipboard.writeText(text); }
+    catch { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t);
+            t.select(); document.execCommand("copy"); t.remove(); }
+    b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500);
+  });
+}
+
+// ---------- Data checks ----------
+function renderData() {
+  const found = DATA.data_checks.filter(c => c.n_found > 0);
+  document.getElementById("data").innerHTML = `
+    <section><h2>Problems found in the data, and what was done</h2>
+    ${table(`<th>Check</th><th class="num">Found</th><th>Details</th><th>What was done</th>`,
+      found.map(c => `<tr><td><b>${esc(c.check_name)}</b></td><td class="num">${c.n_found.toLocaleString("en-IN")}</td>
+        <td class="detail">${esc(c.detail)}</td><td>${esc(c.what_we_did)}</td></tr>`), "")}
+    </section>`;
+}
+
+// ---------- wiring ----------
+const pick = document.getElementById("pick");
+Object.keys(DATA.reports).reverse().forEach(k => pick.add(new Option(fmtD(k, {day: true, year: true}) + (k === DATA.latest ? " (latest)" : ""), k)));
+function show(key) {
+  if (!DATA.reports[key]) key = DATA.latest;
+  const r = DATA.reports[key];
+  pick.value = key; renderWeek(r);
+  document.getElementById("dates").textContent =
+    `Week ${fmtD(r.week_from)} – ${fmtD(r.week_to, {year: true})}, sent ${fmtD(r.report_date, {day: true})}`.replace(/^(.*sent )Mon/, "$1Monday");
+  history.replaceState(null, "", "#" + key);
+}
+function tab(name) {
+  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  ["week", "data"].forEach(id => document.getElementById(id).hidden = id !== name);
+  document.getElementById("picklabel").style.visibility = name === "week" ? "visible" : "hidden";
+}
+pick.onchange = () => show(pick.value);
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => tab(b.dataset.tab));
+renderData(); show(location.hash.slice(1));
+</script>
+</body>
+</html>
