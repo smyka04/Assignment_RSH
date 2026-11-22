@@ -34,8 +34,8 @@ Backtest also showed that threshold/rule numbers worked here and could move a lo
 
 ## How I used AI tools
 
-- **Claude (Claude Code):** profiled the data, wrote the DuckDB SQL, Python, web page, tests and GitHub Action
-- **What I decided:** execution plan, the output formatting, SQL for the data work, which SQL engine to use, the city merges, deduplication, the alert thresholds and rule logic, the output page design, message content, README and NOTE
+- **Claude (Claude Code):** profiled the data, wrote the DuckDB SQL, Python, web page, tests, GitHub Action and README
+- **What I decided:** execution plan, the output formatting, SQL for the data work, which SQL engine to use, the city merges, deduplication, the alert thresholds, the output page design, message content, README and NOTE
 - **What I checked myself:** 16 Nov alerts against raw CSV files, backtest results, web page and messages, message content, output screenshots and PDF
 
 ## Potential future additions
