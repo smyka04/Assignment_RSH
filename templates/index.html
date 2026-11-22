@@ -77,6 +77,19 @@
     .msgs { grid-template-columns: 1fr; }
     .hide-sm { display: none; }
   }
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    body { background: #fff; font-size: 12px; }
+    nav, #picklabel, .btn { display: none !important; }
+    header { border-bottom: 0; }
+    .tiles { grid-template-columns: repeat(3, 1fr); }
+    .msgs { grid-template-columns: repeat(3, 1fr); }
+    .tile, .card, .msg, tr { break-inside: avoid; }
+    .hide-sm { display: table-cell !important; }
+    .show-sm { display: none !important; }
+    .wide { min-width: 0; }
+    h2 { break-after: avoid; }
+  }
 </style>
 </head>
 <body>
